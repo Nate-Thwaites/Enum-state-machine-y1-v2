@@ -2,14 +2,22 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+
+public enum States // used by all logic
+{
+    None,
+    Idle,
+    Walk,
+    Jump,
+};
+
 public class PlayerScript : MonoBehaviour
 {
     States state;
+
+
     Rigidbody rb;
     bool grounded;
-    float idleMovement = 0;
-    public GameObject cylinder; //body of player
-
 
     // Start is called before the first frame update
     void Start()
@@ -34,7 +42,7 @@ public class PlayerScript : MonoBehaviour
     {
         if( state == States.Idle )
         {
-            PlayerStanding();
+            PlayerIdle();
         }
 
         if( state == States.Jump )
@@ -49,7 +57,7 @@ public class PlayerScript : MonoBehaviour
     }
 
 
-    void PlayerStanding()
+    void PlayerIdle()
     {
         if( Input.GetKeyDown(KeyCode.Space))
         {
@@ -73,16 +81,6 @@ public class PlayerScript : MonoBehaviour
             state = States.Walk;
         }
 
-        //do idle movement
-        float offset = Time.time % 1f;
-        if ( offset > 0.5f )
-        {
-            offset = 1.0f-offset;
-        }
-        offset /= 4;
-        cylinder.transform.position = new Vector3(cylinder.transform.position.x, offset, cylinder.transform.position.z);
-
-
     }
 
     void PlayerJumping()
@@ -97,10 +95,9 @@ public class PlayerScript : MonoBehaviour
 
     void PlayerWalk()
     {
-        
         rb.velocity = Vector3.ClampMagnitude(rb.velocity, 5f);
 
-        //magnitude is the player's speed
+        //magnitude = the player's speed
         float magnitude = rb.velocity.magnitude;
 
         rb.AddForce(transform.forward * 5f);
@@ -119,16 +116,12 @@ public class PlayerScript : MonoBehaviour
 
     private void OnGUI()
     {
+        //debug text
         string text = "Left/Right arrows = Rotate\nSpace = Jump\nUp Arrow = Forward\nCurrent state=" + state;
 
         // define debug text area
         GUILayout.BeginArea(new Rect(10f, 450f, 1600f, 1600f));
         GUILayout.Label($"<size=16>{text}</size>");
         GUILayout.EndArea();
-
-
     }
-
-
-
 }
