@@ -1,7 +1,10 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
-
+using UnityEngine.SceneManagement;
+using System.Threading;
+using System.Threading.Tasks;
 
 public enum States // used by all logic
 {
@@ -9,6 +12,7 @@ public enum States // used by all logic
     Idle,
     Walk,
     Jump,
+    Dead,
 };
 
 public class PlayerScript : MonoBehaviour
@@ -18,7 +22,8 @@ public class PlayerScript : MonoBehaviour
 
     Rigidbody rb;
     bool grounded;
-
+    bool dead;
+    GameObject Player;
     // Start is called before the first frame update
     void Start()
     {
@@ -35,6 +40,7 @@ public class PlayerScript : MonoBehaviour
     void FixedUpdate()
     {
         grounded=false;
+        dead=false;
     }
 
 
@@ -66,12 +72,12 @@ public class PlayerScript : MonoBehaviour
             rb.velocity = new Vector3( 0,10,0);
         }
 
-        if( Input.GetKey("left"))
+        if( Input.GetKey("right"))
         {
             transform.Rotate( 0, 0.5f, 0, Space.Self );
 
         }
-        if( Input.GetKey("right"))
+        if( Input.GetKey("left"))
         {
             transform.Rotate( 0,-0.5f, 0, Space.Self );
         }
@@ -79,8 +85,8 @@ public class PlayerScript : MonoBehaviour
         if( Input.GetKey("up"))
         {
             state = States.Walk;
+           
         }
-
     }
 
     void PlayerJumping()
@@ -100,17 +106,67 @@ public class PlayerScript : MonoBehaviour
         //magnitude = the player's speed
         float magnitude = rb.velocity.magnitude;
 
-        rb.AddForce(transform.forward * 5f);
+
+
+        if (Input.GetKey("up") == true)
+        {
+            rb.AddForce(transform.forward * 5f);
+        }
+
+        if (Input.GetKey("up") == false)
+        {
+            if (magnitude < 0.1f)
+            {
+                rb.velocity = Vector3.zero;
+                state = States.Idle;
+            }
+
+        }
+       
+
+
+            
+            
+
+        if (Input.GetKey("right"))
+        {
+            transform.Rotate(0, 0.5f, 0, Space.Self);
+
+        }
+        if (Input.GetKey("left"))
+        {
+            transform.Rotate(0, -0.5f, 0, Space.Self);
+        }
     }
 
 
-    void OnCollisionEnter( Collision col )
+    /*void OnCollisionEnter( Collision col )
     {
         if( col.gameObject.tag == "Floor")
         {
             grounded=true;
             print("landed!");
         }
+    }*/
+
+    void OnCollisionEnter(Collision collision)
+    {
+        if (collision.gameObject.tag == "Enemy")
+        {
+            state = States.Dead;
+            dead =true;
+            rb.velocity = new Vector3(0, 50, 0);
+            Task.Delay(2000);
+            SceneManager.LoadScene("Demo");
+            
+        }
+
+       
+
+        
+        
+
+        
     }
 
 
