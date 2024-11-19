@@ -1,10 +1,4 @@
-using System.Collections;
-using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.SceneManagement;
-using System.Threading;
-using System.Threading.Tasks;
 
 public enum States // used by all logic
 {
@@ -13,34 +7,46 @@ public enum States // used by all logic
     Walk,
     Jump,
     Dead,
+    Hit,
 };
 
 public class PlayerScript : MonoBehaviour
 {
     States state;
 
+    public GameObject weapon;
 
     Rigidbody rb;
     bool grounded;
     bool dead;
     GameObject Player;
+
+    public Transform shootPoint;
+
+    public static int health;
+    int moveDirection = 1;
+    bool hit;
     // Start is called before the first frame update
     void Start()
     {
         state = States.Idle;
         rb = GetComponent<Rigidbody>();
+        health = 10;
     }
 
     // Update is called once per frame
     void Update()
     {
         DoLogic();
+        ShootWeapon();
     }
 
     void FixedUpdate()
     {
         grounded=false;
-        dead=false;
+        
+        hit = false;
+        
     }
 
 
@@ -59,6 +65,11 @@ public class PlayerScript : MonoBehaviour
         if( state == States.Walk )
         {
             PlayerWalk();
+        }
+
+        if( state == States.Hit)
+        {
+            PlayerHit();
         }
     }
 
@@ -131,6 +142,7 @@ public class PlayerScript : MonoBehaviour
         if (Input.GetKey("right"))
         {
             transform.Rotate(0, 0.5f, 0, Space.Self);
+            
 
         }
         if (Input.GetKey("left"))
@@ -139,45 +151,69 @@ public class PlayerScript : MonoBehaviour
         }
     }
 
+    void PlayerHit()
+    {
+        print("Player is hit");
+    }
 
-    /*void OnCollisionEnter( Collision col )
+    public void SetPlayerHit()
+    {
+        state = States.Jump;
+        rb.velocity = new Vector3(6, 6, 0);
+    }
+
+    void OnCollisionEnter( Collision col )
     {
         if( col.gameObject.tag == "Floor")
         {
             grounded=true;
             print("landed!");
         }
-    }*/
-
-    void OnCollisionEnter(Collision collision)
-    {
-        if (collision.gameObject.tag == "Enemy")
-        {
-            state = States.Dead;
-            dead =true;
-            rb.velocity = new Vector3(0, 50, 0);
-            Task.Delay(2000);
-            SceneManager.LoadScene("Demo");
-            
-        }
-
-       
-
-        
-        
-
-        
     }
+
+   
 
 
     private void OnGUI()
     {
         //debug text
-        string text = "Left/Right arrows = Rotate\nSpace = Jump\nUp Arrow = Forward\nCurrent state=" + state;
+        string text = "Left/Right arrows = Rotate\nSpace = Jump\nUp Arrow = Forward\nCurrent state = " + state + "\nPlayer Health = " + health;
 
         // define debug text area
-        GUILayout.BeginArea(new Rect(10f, 450f, 1600f, 1600f));
+        GUILayout.BeginArea(new Rect(10f, 420f, 1600f, 1600f));
         GUILayout.Label($"<size=16>{text}</size>");
         GUILayout.EndArea();
     }
+
+    void ShootWeapon()
+    {
+
+
+        if (Input.GetButtonDown("Fire1"))
+        {
+            // Instantiate the bullet at the position and rotation of the player
+            GameObject clone;
+            clone = Instantiate(weapon, transform.position, transform.rotation);
+
+
+
+
+            // for 3D, get the rigidbody component
+            Rigidbody rb = clone.GetComponent<Rigidbody>();
+
+
+
+
+            // set the velocity
+            rb.velocity = transform.forward * 15;
+
+
+            // set the position close to the player
+            rb.transform.position = shootPoint.position;
+
+            
+        }
+
+    }
+
 }
